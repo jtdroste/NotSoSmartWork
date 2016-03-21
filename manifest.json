@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Not So SmartWork",
+  "version": "0.2",
+  
+  "description": "SmartWork likes to send the solutions on each requests. Let's leverage that.",
+  
+  "author": "James Droste <james@droste.im>",
+  "homepage_url": "https://james.droste.im/",
+  
+  "permissions": [
+	  "webRequest",
+	  "*://smartwork.wwnorton.com/production/norton/ibis/css/StudentPHPBridge.php*"
+  ],
+  
+  "background": {
+	  "page": "background.html"
+  }
+}

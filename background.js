@@ -148,5 +148,73 @@ function solveNumeric(q, item) {
 		4{\times}{\pi}{\times}(10^{7})^{2}{\times}5.67{\times}10^{-8}{\times}(__ALGO0__)^{4}
 		__ALGO0__ = 1e5, 1e6, 1e7, 1e8
 	*/
-	return "Unimplemented";
+
+	// Grab the question ID
+	qid = q.attr('id');
+
+	// Grab the solution response for this QID
+	answer = '--NOT-FOUND--';
+	$(window.XMLDOC.getElementsByTagName('solutionResponse')[0]).children('modules').children().each(function() {
+		if ( $(this).attr('id') != qid ) return;
+
+		rawAnswer = $(this).children('laTex')[0].innerHTML;
+		answer = decodeURIComponent(rawAnswer);
+	});
+
+	// Now grab all the algos
+	algos = [];
+	known_algos = [];
+	$(window.XMLDOC.getElementsByTagName('algoSet')).children().each(function() {
+		algo = $(this);
+		algo_id = decodeURIComponent(algo.attr('id'));
+
+		new_algo = {
+			id: algo_id,
+			is_rand_value: $(this).children('equation').length == 0,
+			equation: '',
+		}
+
+		if ( !new_algo.is_rand_value ) {
+			new_algo.equation = decodeURIComponent($(this).children('equation')[0].innerHTML);
+			known_algos.push(algo_id);
+		}
+
+		algos.push(new_algo);
+	})
+
+	// Now let's try to compute it
+	origAnswer = answer;
+	magic_regex_algo = /\\algo{__algo([0-9])__}{([a-z0-9]*)}/gi;
+	magic_regex_algo_number = /__algo([0-9])__/gi;
+
+	while ( true ) {
+		replaced = false;
+
+		algos_to_replace = answer.match(magic_regex_algo);
+		if ( algos_to_replace == null ) break;
+
+		for ( i=0; i < algos_to_replace.length; i++ ) {
+			search_str = algos_to_replace[i];
+			algo_id = algos_to_replace[i].match(magic_regex_algo_number)[0];
+
+
+			if ( jQuery.inArray(algo_id, known_algos) !== -1 ) {
+				// WE KNOW THIS OMGOMGOMG
+				equation = '';
+
+				for ( j=0; j < algos.length; j++ ) {
+					if ( algos[j].id != algo_id ) continue;
+
+					equation = algos[j].equation;
+				}
+
+				answer = answer.replace(search_str, equation);
+				replaced = true;
+			}
+		}
+
+		if ( !replaced ) break;
+	}
+
+	return answer;
 }
